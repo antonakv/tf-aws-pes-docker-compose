@@ -11,10 +11,6 @@ Terraform Enterprise FDO docker compose
 
 - In the Account settings click `Generate Encrypted Password`
 
-- Run `docker login quay.io` using generated command from previous step
-
-- Download terraform-enterprise docker image 
-
-Run `sudo docker pull quay.io/hashicorp/terraform-enterprise:latest`
+- Add variable value to terraform.tfvars called `docker_quaiio_token` from -p="token_value_here" generated on the previous step.
 
 ## 

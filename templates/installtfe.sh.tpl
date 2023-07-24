@@ -42,22 +42,10 @@ echo $key_base64 | base64 --decode > /var/lib/tfe/key.pem
 
 sudo echo $license_base64 | sudo base64 --decode > /etc/tfe-license.rli
 
-echo "$(date +"%T_%F") Downloading TFE online" | tee -a $logpath
+echo "$(date +"%T_%F") Docker login to quai.io" | tee -a $logpath
 
-curl --noproxy '*' --create-dirs --output /etc/replicated/install.sh https://install.terraform.io/ptfe/stable
+sudo docker login -u="{docker_quaiio_login}" -p="${docker_quaiio_token}" quay.io  | tee -a $logpath
 
-chmod +x /etc/replicated/install.sh
-
-cd /etc/replicated
+sudo docker pull quay.io/hashicorp/terraform-enterprise:latest  | tee -a $logpath
 
 ipaddr=$(hostname -I | awk '{print $1}')
-
-echo "$(date +"%T_%F") Installing TFE online" | tee -a $logpath
-
-/etc/replicated/install.sh \
-    fast-timeouts \
-    bypass-firewalld-warning \
-    no-proxy \
-    private-address=$ipaddr \
-    public-address=$ipaddr \
-    | tee -a $logpath
