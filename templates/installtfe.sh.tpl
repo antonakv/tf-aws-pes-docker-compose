@@ -14,6 +14,8 @@ mkdir -p /var/lib/tfe
 
 mkdir -p /home/ubuntu/install
 
+ipaddr=$(hostname -I | awk '{print $1}')
+
 echo "$(date +"%T_%F") Create TFE and replicated setting files" | tee -a $logpath
 
 sudo echo "${tfe_settings}" | sudo base64 --decode > /etc/ptfe-settings.json
@@ -26,11 +28,21 @@ sudo mkdir -p /etc/docker | tee -a $logpath
 
 sudo echo "${docker_config}" | sudo base64 --decode > /etc/docker/daemon.json
 
+echo "$(date +"%T_%F") Start and enable docker" | tee -a $logpath
+
+sudo systemctl start docker
+
+sleep 10
+
+sudo systemctl enable docker
+
 echo "$(date +"%T_%F") Extract certificate, key, license from AWS Secretsmanager" | tee -a $logpath
 
 cert_base64=$(get_secret ${cert_secret_id})
 
 key_base64=$(get_secret ${key_secret_id})
+
+chain_base64=$(get_secret ${chain_secret_id})
 
 license_base64=$(get_secret ${license_secret_id})
 
@@ -40,12 +52,22 @@ echo $cert_base64 | base64 --decode > /var/lib/tfe/certificate.pem
 
 echo $key_base64 | base64 --decode > /var/lib/tfe/key.pem
 
+echo $chain_base64 | base64 --decode > /var/lib/tfe/chain.pem
+
 sudo echo $license_base64 | sudo base64 --decode > /etc/tfe-license.rli
+
+sudo echo $docker_compose_config | sudo base64 --decode > /home/ubuntu/install/docker_compose.yml
 
 echo "$(date +"%T_%F") Docker login to quai.io" | tee -a $logpath
 
-sudo docker login -u="{docker_quaiio_login}" -p="${docker_quaiio_token}" quay.io  | tee -a $logpath
+sudo docker login -u="${docker_quaiio_login}" -p="${docker_quaiio_token}" quay.io  | tee -a $logpath
 
-sudo docker pull quay.io/hashicorp/terraform-enterprise:latest  | tee -a $logpath
+echo "$(date +"%T_%F") Docker pull image from quai.io" | tee -a $logpath
 
-ipaddr=$(hostname -I | awk '{print $1}')
+sudo docker pull quay.io/hashicorp/terraform-enterprise:${tfe_quaiio_tag}  | tee -a $logpath
+
+cd /home/ubuntu/install
+
+echo "$(date +"%T_%F") Starting docker compose" | tee -a $logpath
+
+sudo docker compose up -d
