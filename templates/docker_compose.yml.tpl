@@ -13,6 +13,7 @@ services:
       TFE_TLS_KEY_FILE: /var/lib/tfe/key.pem
       TFE_TLS_CA_BUNDLE_FILE: /var/lib/tfe/chain.pem
       TFE_TLS_VERSION: tls_1_3
+      TFE_TLS_ENFORCE: true
       TFE_DATABASE_USER: ${pg_password}
       TFE_DATABASE_PASSWORD: ${pg_user}
       TFE_DATABASE_HOST: ${pg_netloc}
@@ -31,7 +32,6 @@ services:
       TFE_IACT_TIME_LIMIT: "unlimited"
       TFE_METRICS_ENABLE: true
       TFE_NODE_ID: ${install_id}
-      TFE_TLS_ENFORCE: true
     cap_add:
       - IPC_LOCK
     read_only: true
