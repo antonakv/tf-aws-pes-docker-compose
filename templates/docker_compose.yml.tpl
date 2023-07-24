@@ -12,6 +12,7 @@ services:
       TFE_TLS_CERT_FILE: /var/lib/tfe/certificate.pem
       TFE_TLS_KEY_FILE: /var/lib/tfe/key.pem
       TFE_TLS_CA_BUNDLE_FILE: /var/lib/tfe/chain.pem
+      TFE_TLS_VERSION: tls_1_3
       TFE_DATABASE_USER: ${pg_password}
       TFE_DATABASE_PASSWORD: ${pg_user}
       TFE_DATABASE_HOST: ${pg_netloc}
@@ -22,10 +23,15 @@ services:
       TFE_OBJECT_STORAGE_S3_REGION: ${region}
       TFE_OBJECT_STORAGE_S3_BUCKET: ${s3_bucket}
       TFE_OBJECT_STORAGE_S3_SERVER_SIDE_ENCRYPTION: AES256
-      TFE_LICENSE: /etc/tfe-license.rli
+      TFE_LICENSE_PATH: /etc/tfe-license.rli
       TFE_REDIS_PASSWORD: ${redis_pass}
       TFE_REDIS_USE_TLS: false
       TFE_REDIS_USE_AUTH: false
+      TFE_IACT_SUBNETS: "0.0.0.0/0"
+      TFE_IACT_TIME_LIMIT: "unlimited"
+      TFE_METRICS_ENABLE: true
+      TFE_NODE_ID: ${install_id}
+      TFE_TLS_ENFORCE: true
     cap_add:
       - IPC_LOCK
     read_only: true
