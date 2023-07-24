@@ -15,6 +15,6 @@ Terraform Enterprise FDO docker compose
 
 - Download terraform-enterprise docker image 
 
-Run `sudo docker pull quay.io/hashicorp/terraform-enterprise:latest`
+Run `docker pull quay.io/hashicorp/terraform-enterprise:latest`
 
 ## 

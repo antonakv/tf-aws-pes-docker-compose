@@ -104,3 +104,8 @@ variable "lb_ssl_policy" {
 variable "instance_type_agent" {
   description = "Amazon EC2 instance type"
 }
+variable "docker_quaiio_token" {
+  type        = string
+  description = "quai.io token from Account settings"
+  sensitive   = true
+}
