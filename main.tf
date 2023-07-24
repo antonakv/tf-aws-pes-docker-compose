@@ -127,6 +127,7 @@ locals {
     {
       replicated_settings = base64encode(jsonencode(local.replicated_config))
       tfe_settings        = base64encode(jsonencode(local.tfe_config))
+      docker_quaiio_token = var.docker_quaiio_token
       cert_secret_id      = aws_secretsmanager_secret.tls_certificate.id
       key_secret_id       = aws_secretsmanager_secret.tls_key.id
       license_secret_id   = aws_secretsmanager_secret.tfe_license.id

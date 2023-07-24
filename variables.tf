@@ -106,6 +106,11 @@ variable "instance_type_agent" {
 }
 variable "docker_quaiio_token" {
   type        = string
-  description = "quai.io token from Account settings"
+  description = "Docker quai.io token from Account settings"
+  sensitive   = true
+}
+variable "docker_quaiio_login" {
+  type        = string
+  description = "Docker quai.io login from Account settings"
   sensitive   = true
 }
