@@ -152,6 +152,7 @@ locals {
       region         = var.region
       s3_bucket      = aws_s3_bucket.tfe_data.id
       redis_pass     = random_id.redis_password.hex
+      install_id     = random_id.install_id.hex
     }
   )
 }
