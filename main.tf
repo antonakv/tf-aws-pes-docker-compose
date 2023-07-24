@@ -127,7 +127,7 @@ locals {
     {
       replicated_settings   = base64encode(jsonencode(local.replicated_config))
       tfe_settings          = base64encode(jsonencode(local.tfe_config))
-      docker_compose_config = base64encode(local.docker_compose_config)
+      docker_compose_config = base64encode(yamlencode(local.docker_compose_config))
       docker_quaiio_token   = var.docker_quaiio_token
       docker_quaiio_login   = var.docker_quaiio_login
       tfe_quaiio_tag        = var.tfe_quaiio_tag
@@ -233,7 +233,7 @@ data "aws_iam_policy_document" "secretsmanager" {
   statement {
     actions   = ["secretsmanager:GetSecretValue"]
     effect    = "Allow"
-    resources = [aws_secretsmanager_secret_version.tfe_license.secret_id, aws_secretsmanager_secret_version.tls_certificate.secret_id, aws_secretsmanager_secret_version.tls_key.secret_id]
+    resources = [aws_secretsmanager_secret_version.tfe_license.secret_id, aws_secretsmanager_secret_version.tls_certificate.secret_id, aws_secretsmanager_secret_version.tls_key.secret_id, aws_secretsmanager_secret_version.tls_chain.secret_id]
     sid       = "AllowSecretsManagerSecretAccess"
   }
 }
@@ -449,14 +449,6 @@ resource "aws_security_group" "lb_sg" {
   }
 
   ingress {
-    from_port   = 8800
-    to_port     = 8800
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "allow replicated admin port incoming connection"
-  }
-
-  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -576,14 +568,6 @@ resource "aws_security_group" "internal_sg" {
     description = "allow Vault HA request forwarding"
   }
 
-  ingress {
-    from_port   = 8800
-    to_port     = 8800
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "allow replicated admin port incoming connection"
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -606,14 +590,6 @@ resource "aws_security_group" "public_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow http port incoming connection"
-  }
-
-  ingress {
-    from_port   = 8800
-    to_port     = 8800
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "allow replicated admin port incoming connection"
   }
 
   ingress {
@@ -842,34 +818,6 @@ resource "aws_lb_target_group" "tfe_443" {
   ]
 }
 
-resource "aws_lb_target_group" "tfe_8800" {
-  name        = "${local.friendly_name_prefix}-tfe-tg-8800"
-  port        = 8800
-  protocol    = "HTTPS"
-  vpc_id      = aws_vpc.vpc.id
-  slow_start  = 900
-  target_type = "instance"
-  lifecycle {
-    create_before_destroy = true
-  }
-  health_check {
-    healthy_threshold   = 6
-    unhealthy_threshold = 2
-    timeout             = 2
-    interval            = 5
-    path                = "/"
-    protocol            = "HTTPS"
-    matcher             = "200-399"
-  }
-  stickiness {
-    enabled = true
-    type    = "lb_cookie"
-  }
-  depends_on = [
-    aws_instance.tfe
-  ]
-}
-
 resource "aws_acm_certificate" "tfe" {
   private_key       = data.local_sensitive_file.sslkey.content
   certificate_body  = data.local_sensitive_file.sslcert.content
@@ -891,31 +839,6 @@ resource "aws_lb_listener" "lb_443" {
   }
 }
 
-resource "aws_lb_listener" "lb_8800" {
-  load_balancer_arn = aws_lb.tfe_lb.arn
-  port              = 8800
-  protocol          = "HTTPS"
-  ssl_policy        = var.lb_ssl_policy
-  certificate_arn   = aws_acm_certificate.tfe.arn
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.tfe_8800.arn
-  }
-}
-
-resource "aws_lb_listener_rule" "tfe_8800" {
-  listener_arn = aws_lb_listener.lb_8800.arn
-  condition {
-    host_header {
-      values = [local.tfe_hostname]
-    }
-  }
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.tfe_8800.arn
-  }
-}
-
 resource "aws_lb_listener_rule" "tfe_443" {
   listener_arn = aws_lb_listener.lb_443.arn
   condition {
@@ -933,15 +856,6 @@ resource "aws_lb_target_group_attachment" "tfe_443" {
   target_group_arn = aws_lb_target_group.tfe_443.arn
   target_id        = aws_instance.tfe.id
   port             = 443
-  depends_on = [
-    aws_instance.tfe
-  ]
-}
-
-resource "aws_lb_target_group_attachment" "tfe_8800" {
-  target_group_arn = aws_lb_target_group.tfe_8800.arn
-  target_id        = aws_instance.tfe.id
-  port             = 8800
   depends_on = [
     aws_instance.tfe
   ]

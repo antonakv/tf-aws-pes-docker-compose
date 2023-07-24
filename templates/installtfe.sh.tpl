@@ -46,17 +46,25 @@ chain_base64=$(get_secret ${chain_secret_id})
 
 license_base64=$(get_secret ${license_secret_id})
 
-echo "$(date +"%T_%F") Write certificate, key, license" | tee -a $logpath
+echo "$(date +"%T_%F") Write tls certificate" | tee -a $logpath
 
 echo $cert_base64 | base64 --decode > /var/lib/tfe/certificate.pem
 
+echo "$(date +"%T_%F") Write tls key" | tee -a $logpath
+
 echo $key_base64 | base64 --decode > /var/lib/tfe/key.pem
+
+echo "$(date +"%T_%F") Write tls chain" | tee -a $logpath
 
 echo $chain_base64 | base64 --decode > /var/lib/tfe/chain.pem
 
+echo "$(date +"%T_%F") Write license" | tee -a $logpath
+
 sudo echo $license_base64 | sudo base64 --decode > /etc/tfe-license.rli
 
-sudo echo $docker_compose_config | sudo base64 --decode > /home/ubuntu/install/docker_compose.yml
+echo "$(date +"%T_%F") Write docker compose config" | tee -a $logpath
+
+sudo echo "${docker_compose_config}" | sudo base64 --decode > /home/ubuntu/install/docker_compose.yml
 
 echo "$(date +"%T_%F") Docker login to quai.io" | tee -a $logpath
 
