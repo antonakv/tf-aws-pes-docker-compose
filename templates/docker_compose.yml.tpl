@@ -6,12 +6,12 @@ services:
     image: quay.io/hashicorp/terraform-enterprise:${tfe_quaiio_tag}
     environment:
       TFE_HOSTNAME: ${hostname}
-      TFE_OPERATIONAL_MODE: "external"    
+      TFE_OPERATIONAL_MODE: external
       TFE_ENCRYPTION_PASSWORD: ${enc_password}
       TFE_DISK_CACHE_VOLUME_NAME: terraform-enterprise-cache
-      TFE_TLS_CERT_FILE: /var/lib/tfe/certificate.pem
-      TFE_TLS_KEY_FILE: /var/lib/tfe/key.pem
-      TFE_TLS_CA_BUNDLE_FILE: /var/lib/tfe/chain.pem
+      TFE_TLS_CERT_FILE: /etc/ssl/private/terraform-enterprise/certificate.pem
+      TFE_TLS_KEY_FILE: /etc/ssl/private/terraform-enterprise/key.pem
+      TFE_TLS_CA_BUNDLE_FILE: /etc/ssl/private/terraform-enterprise/chain.pem
       TFE_TLS_VERSION: tls_1_3
       TFE_TLS_ENFORCE: true
       TFE_DATABASE_USER: ${pg_password}
@@ -19,17 +19,17 @@ services:
       TFE_DATABASE_HOST: ${pg_netloc}
       TFE_DATABASE_NAME: ${pg_dbname}
       TFE_DATABASE_PARAMETERS: sslmode=require
-      TFE_OBJECT_STORAGE_TYPE: "s3"
+      TFE_OBJECT_STORAGE_TYPE: s3
       TFE_OBJECT_STORAGE_S3_USE_INSTANCE_PROFILE: true
       TFE_OBJECT_STORAGE_S3_REGION: ${region}
       TFE_OBJECT_STORAGE_S3_BUCKET: ${s3_bucket}
       TFE_OBJECT_STORAGE_S3_SERVER_SIDE_ENCRYPTION: AES256
-      TFE_LICENSE_PATH: /etc/tfe-license.rli
+      TFE_LICENSE: /etc/ssl/private/terraform-enterprise/tfe-license.lic
       TFE_REDIS_PASSWORD: ${redis_pass}
       TFE_REDIS_USE_TLS: false
       TFE_REDIS_USE_AUTH: false
-      TFE_IACT_SUBNETS: "0.0.0.0/0"
-      TFE_IACT_TIME_LIMIT: "unlimited"
+      TFE_IACT_SUBNETS: 0.0.0.0/0
+      TFE_IACT_TIME_LIMIT: 100000
       TFE_METRICS_ENABLE: true
       TFE_NODE_ID: ${install_id}
     cap_add:
@@ -47,7 +47,7 @@ services:
         source: /var/run/docker.sock
         target: /run/docker.sock
       - type: bind
-        source: ./certs
+        source: /var/lib/tfe
         target: /etc/ssl/private/terraform-enterprise
       - type: volume
         source: terraform-enterprise-cache
