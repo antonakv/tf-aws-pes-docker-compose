@@ -60,7 +60,7 @@ echo $chain_base64 | base64 --decode > /var/lib/tfe/chain.pem
 
 echo "$(date +"%T_%F") Write license" | tee -a $logpath
 
-sudo echo $license_base64 | sudo base64 --decode > /etc/tfe-license.rli
+sudo echo $license_base64 | sudo base64 --decode > /var/lib/tfe/tfe-license.lic
 
 echo "$(date +"%T_%F") Write docker compose config" | tee -a $logpath
 
@@ -78,4 +78,4 @@ cd /home/ubuntu/install
 
 echo "$(date +"%T_%F") Starting docker compose" | tee -a $logpath
 
-sudo docker compose up -d
+sudo docker compose -f /home/ubuntu/install/docker_compose.yml up -d

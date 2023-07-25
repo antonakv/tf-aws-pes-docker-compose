@@ -127,7 +127,7 @@ locals {
     {
       replicated_settings   = base64encode(jsonencode(local.replicated_config))
       tfe_settings          = base64encode(jsonencode(local.tfe_config))
-      docker_compose_config = base64encode(yamlencode(local.docker_compose_config))
+      docker_compose_config = base64encode(local.docker_compose_config)
       docker_quaiio_token   = var.docker_quaiio_token
       docker_quaiio_login   = var.docker_quaiio_login
       tfe_quaiio_tag        = var.tfe_quaiio_tag
@@ -139,6 +139,8 @@ locals {
       docker_config         = filebase64("files/daemon.json")
     }
   )
+  # Configuration reference path
+  # https://github.com/hashicorp/terraform-enterprise/blob/main/docs/configuration.md
   docker_compose_config = templatefile(
     "templates/docker_compose.yml.tpl",
     {
