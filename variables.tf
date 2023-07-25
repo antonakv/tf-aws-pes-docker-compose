@@ -113,5 +113,5 @@ variable "docker_quaiio_login" {
 }
 variable "tfe_quaiio_tag" {
   type        = string
-  description = "Docker quai.io tag"
+  description = "Docker tfe image tag on the quai.io"
 }

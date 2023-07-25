@@ -6,7 +6,7 @@ locals {
     DaemonAuthenticationType     = "password"
     DaemonAuthenticationPassword = random_string.password.result
     ImportSettingsFrom           = "/etc/ptfe-settings.json"
-    LicenseFileLocation          = "/etc/tfe-license.rli"
+    LicenseFileLocation          = "/etc/tfe-license.lic"
     TlsBootstrapHostname         = local.tfe_hostname
     TlsBootstrapCert             = "/var/lib/tfe/certificate.pem"
     TlsBootstrapKey              = "/var/lib/tfe/key.pem"
@@ -125,14 +125,36 @@ locals {
   tfe_user_data = templatefile(
     "templates/installtfe.sh.tpl",
     {
-      replicated_settings = base64encode(jsonencode(local.replicated_config))
-      tfe_settings        = base64encode(jsonencode(local.tfe_config))
-      docker_quaiio_token = var.docker_quaiio_token
-      cert_secret_id      = aws_secretsmanager_secret.tls_certificate.id
-      key_secret_id       = aws_secretsmanager_secret.tls_key.id
-      license_secret_id   = aws_secretsmanager_secret.tfe_license.id
-      region              = var.region
-      docker_config       = filebase64("files/daemon.json")
+      replicated_settings   = base64encode(jsonencode(local.replicated_config))
+      tfe_settings          = base64encode(jsonencode(local.tfe_config))
+      docker_compose_config = base64encode(local.docker_compose_config)
+      docker_quaiio_token   = var.docker_quaiio_token
+      docker_quaiio_login   = var.docker_quaiio_login
+      tfe_quaiio_tag        = var.tfe_quaiio_tag
+      cert_secret_id        = aws_secretsmanager_secret.tls_certificate.id
+      key_secret_id         = aws_secretsmanager_secret.tls_key.id
+      chain_secret_id       = aws_secretsmanager_secret.tls_chain.id
+      license_secret_id     = aws_secretsmanager_secret.tfe_license.id
+      region                = var.region
+      docker_config         = filebase64("files/daemon.json")
+    }
+  )
+  # Configuration reference path
+  # https://github.com/hashicorp/terraform-enterprise/blob/main/docs/configuration.md
+  docker_compose_config = templatefile(
+    "templates/docker_compose.yml.tpl",
+    {
+      hostname       = local.tfe_hostname
+      tfe_quaiio_tag = var.tfe_quaiio_tag
+      enc_password   = random_id.enc_password.hex
+      pg_dbname      = var.postgres_db_name
+      pg_netloc      = aws_db_instance.tfe.endpoint
+      pg_password    = random_string.pgsql_password.result
+      pg_user        = var.postgres_username
+      region         = var.region
+      s3_bucket      = aws_s3_bucket.tfe_data.id
+      redis_pass     = random_id.redis_password.hex
+      install_id     = random_id.install_id.hex
     }
   )
 }
@@ -213,7 +235,7 @@ data "aws_iam_policy_document" "secretsmanager" {
   statement {
     actions   = ["secretsmanager:GetSecretValue"]
     effect    = "Allow"
-    resources = [aws_secretsmanager_secret_version.tfe_license.secret_id, aws_secretsmanager_secret_version.tls_certificate.secret_id, aws_secretsmanager_secret_version.tls_key.secret_id]
+    resources = [aws_secretsmanager_secret_version.tfe_license.secret_id, aws_secretsmanager_secret_version.tls_certificate.secret_id, aws_secretsmanager_secret_version.tls_key.secret_id, aws_secretsmanager_secret_version.tls_chain.secret_id]
     sid       = "AllowSecretsManagerSecretAccess"
   }
 }
@@ -285,7 +307,7 @@ resource "aws_secretsmanager_secret" "tls_certificate" {
 }
 
 resource "aws_secretsmanager_secret_version" "tls_certificate" {
-  secret_binary = filebase64(var.ssl_fullchain_cert_path)
+  secret_binary = filebase64(var.ssl_cert_path)
   secret_id     = aws_secretsmanager_secret.tls_certificate.id
 }
 
@@ -298,6 +320,17 @@ resource "aws_secretsmanager_secret" "tls_key" {
 resource "aws_secretsmanager_secret_version" "tls_key" {
   secret_binary = filebase64(var.ssl_key_path)
   secret_id     = aws_secretsmanager_secret.tls_key.id
+}
+
+resource "aws_secretsmanager_secret_version" "tls_chain" {
+  secret_binary = filebase64(var.ssl_chain_path)
+  secret_id     = aws_secretsmanager_secret.tls_chain.id
+}
+
+resource "aws_secretsmanager_secret" "tls_chain" {
+  description             = "TLS chain"
+  name                    = "${local.friendly_name_prefix}-tfe_chain"
+  recovery_window_in_days = 0
 }
 
 resource "aws_iam_role_policy" "tfe_asg_discovery" {
@@ -415,14 +448,6 @@ resource "aws_security_group" "lb_sg" {
   name   = "${local.friendly_name_prefix}-lb-sg"
   tags = {
     Name = "${local.friendly_name_prefix}-lb-sg"
-  }
-
-  ingress {
-    from_port   = 8800
-    to_port     = 8800
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "allow replicated admin port incoming connection"
   }
 
   ingress {
@@ -545,14 +570,6 @@ resource "aws_security_group" "internal_sg" {
     description = "allow Vault HA request forwarding"
   }
 
-  ingress {
-    from_port   = 8800
-    to_port     = 8800
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "allow replicated admin port incoming connection"
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -575,14 +592,6 @@ resource "aws_security_group" "public_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow http port incoming connection"
-  }
-
-  ingress {
-    from_port   = 8800
-    to_port     = 8800
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "allow replicated admin port incoming connection"
   }
 
   ingress {
@@ -755,7 +764,8 @@ resource "aws_instance" "tfe" {
   subnet_id                   = aws_subnet.subnet_private1.id
   associate_public_ip_address = true
   user_data_base64            = base64encode(local.tfe_user_data)
-  iam_instance_profile        = aws_iam_instance_profile.tfe.id
+  #  generated userdate is stored in the /var/lib/cloud/instance/user-data.txt on EC2 instance
+  iam_instance_profile = aws_iam_instance_profile.tfe.id
   metadata_options {
     http_endpoint               = "enabled"
     http_put_response_hop_limit = 2
@@ -810,34 +820,6 @@ resource "aws_lb_target_group" "tfe_443" {
   ]
 }
 
-resource "aws_lb_target_group" "tfe_8800" {
-  name        = "${local.friendly_name_prefix}-tfe-tg-8800"
-  port        = 8800
-  protocol    = "HTTPS"
-  vpc_id      = aws_vpc.vpc.id
-  slow_start  = 900
-  target_type = "instance"
-  lifecycle {
-    create_before_destroy = true
-  }
-  health_check {
-    healthy_threshold   = 6
-    unhealthy_threshold = 2
-    timeout             = 2
-    interval            = 5
-    path                = "/"
-    protocol            = "HTTPS"
-    matcher             = "200-399"
-  }
-  stickiness {
-    enabled = true
-    type    = "lb_cookie"
-  }
-  depends_on = [
-    aws_instance.tfe
-  ]
-}
-
 resource "aws_acm_certificate" "tfe" {
   private_key       = data.local_sensitive_file.sslkey.content
   certificate_body  = data.local_sensitive_file.sslcert.content
@@ -859,31 +841,6 @@ resource "aws_lb_listener" "lb_443" {
   }
 }
 
-resource "aws_lb_listener" "lb_8800" {
-  load_balancer_arn = aws_lb.tfe_lb.arn
-  port              = 8800
-  protocol          = "HTTPS"
-  ssl_policy        = var.lb_ssl_policy
-  certificate_arn   = aws_acm_certificate.tfe.arn
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.tfe_8800.arn
-  }
-}
-
-resource "aws_lb_listener_rule" "tfe_8800" {
-  listener_arn = aws_lb_listener.lb_8800.arn
-  condition {
-    host_header {
-      values = [local.tfe_hostname]
-    }
-  }
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.tfe_8800.arn
-  }
-}
-
 resource "aws_lb_listener_rule" "tfe_443" {
   listener_arn = aws_lb_listener.lb_443.arn
   condition {
@@ -901,15 +858,6 @@ resource "aws_lb_target_group_attachment" "tfe_443" {
   target_group_arn = aws_lb_target_group.tfe_443.arn
   target_id        = aws_instance.tfe.id
   port             = 443
-  depends_on = [
-    aws_instance.tfe
-  ]
-}
-
-resource "aws_lb_target_group_attachment" "tfe_8800" {
-  target_group_arn = aws_lb_target_group.tfe_8800.arn
-  target_id        = aws_instance.tfe.id
-  port             = 8800
   depends_on = [
     aws_instance.tfe
   ]
