@@ -6,7 +6,7 @@ locals {
     DaemonAuthenticationType     = "password"
     DaemonAuthenticationPassword = random_string.password.result
     ImportSettingsFrom           = "/etc/ptfe-settings.json"
-    LicenseFileLocation          = "/etc/tfe-license.rli"
+    LicenseFileLocation          = "/etc/tfe-license.lic"
     TlsBootstrapHostname         = local.tfe_hostname
     TlsBootstrapCert             = "/var/lib/tfe/certificate.pem"
     TlsBootstrapKey              = "/var/lib/tfe/key.pem"
@@ -307,7 +307,7 @@ resource "aws_secretsmanager_secret" "tls_certificate" {
 }
 
 resource "aws_secretsmanager_secret_version" "tls_certificate" {
-  secret_binary = filebase64(var.ssl_chain_path)
+  secret_binary = filebase64(var.ssl_cert_path)
   secret_id     = aws_secretsmanager_secret.tls_certificate.id
 }
 
