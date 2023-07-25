@@ -25,7 +25,6 @@ services:
       TFE_OBJECT_STORAGE_S3_BUCKET: ${s3_bucket}
       TFE_OBJECT_STORAGE_S3_SERVER_SIDE_ENCRYPTION: AES256
       TFE_LICENSE_PATH: /etc/ssl/private/terraform-enterprise/tfe-license.lic
-      TFE_IACT_SUBNETS: 0.0.0.0/0
       TFE_IACT_TIME_LIMIT: 100000
       TFE_METRICS_ENABLE: false
 #     TFE_REDIS_PASSWORD: ${redis_pass}

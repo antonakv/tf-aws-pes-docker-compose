@@ -48,4 +48,6 @@ tfe_quaiio_tag          = "3bc2fb8"
 
 ```
 
-## 
+## Retrieve admin token
+
+On the instance ssh session run: `sudo docker exec -it terraform-enterprise-1 bash -c "/usr/local/bin/retrieve-iact"`
