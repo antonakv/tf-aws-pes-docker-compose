@@ -54,6 +54,8 @@ echo "$(date +"%T_%F") Write tls key" | tee -a $logpath
 
 echo $key_base64 | base64 --decode > /var/lib/tfe/key.pem
 
+sudo chmod 600 /var/lib/tfe/key.pem
+
 echo "$(date +"%T_%F") Write tls chain" | tee -a $logpath
 
 echo $chain_base64 | base64 --decode > /var/lib/tfe/chain.pem
@@ -75,6 +77,10 @@ echo "$(date +"%T_%F") Docker pull image from quai.io" | tee -a $logpath
 sudo docker pull quay.io/hashicorp/terraform-enterprise:${tfe_quaiio_tag}  | tee -a $logpath
 
 cd /home/ubuntu/install
+
+sudo mkdir -p /var/log/tfe
+
+sudo apt-mark hold docker docker-ce docker-compose-plugin docker-ce-rootless-extras docker-ce-cli docker-buildx-plugin
 
 echo "$(date +"%T_%F") Starting docker compose" | tee -a $logpath
 
