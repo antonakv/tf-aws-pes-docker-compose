@@ -1589,10 +1589,6 @@ subnet_private2_id = "subnet-0f8e7d71779eba3d6"
 subnet_public1_id = "subnet-01859b1e8cb77b042"
 subnet_public2_id = "subnet-08368177726c84824"
 tfe_hostname = "lfwbtfe.xxxxxx.cc"
-url = "https://lfwbtfe.xxxxxx.cc/admin/account/new?token=TOKEN_RETRIEVED_IN_THE_INSTANCE_SSH_SESSION"
+url = "https://vuaxtfe.xxxxxx.com/admin/account/new?token=4713f9f63f727b77b7bd92ab523a19d8"
 vpc_id = "vpc-05d6dfb943e32ddf6"
 ```
-
-## Retrieve admin token
-
-On the instance ssh session run: `sudo docker exec -it terraform-enterprise-1 bash -c "/usr/local/bin/retrieve-iact"`

@@ -8,6 +8,7 @@ services:
       TFE_HOSTNAME: ${hostname}
       TFE_OPERATIONAL_MODE: external
       TFE_ENCRYPTION_PASSWORD: ${enc_password}
+      TFE_IACT_TOKEN: ${user_token}
       TFE_DISK_CACHE_VOLUME_NAME: $${COMPOSE_PROJECT_NAME}_terraform-enterprise-cache
       TFE_TLS_CERT_FILE: /etc/ssl/private/terraform-enterprise/certificate.pem
       TFE_TLS_KEY_FILE: /etc/ssl/private/terraform-enterprise/key.pem

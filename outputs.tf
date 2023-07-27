@@ -1,5 +1,5 @@
 output "url" {
-  value       = "https://${local.tfe_hostname}/admin/account/new?token=TOKEN_RETRIEVED_IN_THE_INSTANCE_SSH_SESSION"
+  value       = "https://${local.tfe_hostname}/admin/account/new?token=${random_id.user_token.hex}"
   description = "Login URL and token"
 }
 output "tfe_hostname" {
