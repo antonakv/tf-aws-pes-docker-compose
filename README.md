@@ -23,6 +23,8 @@ This Terraform Code is dedicated to install Terraform Enterprise FDO external se
 - Created Amazon EC2 key pair for Linux instance
 [Creating a public hosted zone](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair)
 
+- Packer AWS AMI image built using the repository `antonakv/packer-aws-ubuntujammy-tfe-fdo`
+
 ## Preparation
 
 - Login to the `quai.io`
