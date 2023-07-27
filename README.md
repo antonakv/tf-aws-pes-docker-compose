@@ -1,5 +1,7 @@
 # tf-aws-docker-compose
-Terraform Enterprise FDO docker compose
+Terraform Enterprise FDO PES docker compose
+
+This Terraform Code is dedicated to install Terraform Enterprise FDO external services on the Amazon AWS
 
 ## Requirements
 
