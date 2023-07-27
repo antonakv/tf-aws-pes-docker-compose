@@ -33,6 +33,7 @@ locals {
       s3_bucket      = aws_s3_bucket.tfe_data.id
       redis_pass     = random_id.redis_password.hex
       install_id     = random_id.install_id.hex
+      user_token     = random_id.user_token.hex
     }
   )
 }
@@ -85,6 +86,10 @@ resource "random_id" "enc_password" {
 }
 
 resource "random_id" "install_id" {
+  byte_length = 16
+}
+
+resource "random_id" "user_token" {
   byte_length = 16
 }
 
