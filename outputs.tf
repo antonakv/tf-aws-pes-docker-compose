@@ -50,7 +50,3 @@ output "region" {
   value       = var.region
   description = "AWS region"
 }
-output "daemon_password" {
-  value       = random_string.password.result
-  description = "Replicated port 8800 authentication password"
-}

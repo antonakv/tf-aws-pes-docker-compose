@@ -18,10 +18,6 @@ ipaddr=$(hostname -I | awk '{print $1}')
 
 echo "$(date +"%T_%F") Create TFE and replicated setting files" | tee -a $logpath
 
-sudo echo "${tfe_settings}" | sudo base64 --decode > /etc/ptfe-settings.json
-
-sudo echo "${replicated_settings}" | sudo base64 --decode > /etc/replicated.conf
-
 echo "$(date +"%T_%F") Create docker config" | tee -a $logpath
 
 sudo mkdir -p /etc/docker | tee -a $logpath

@@ -1,132 +1,9 @@
 locals {
   friendly_name_prefix = "aakulov-${random_string.friendly_name.id}"
   tfe_hostname         = "${random_string.friendly_name.id}${var.tfe_hostname}"
-  replicated_config = {
-    BypassPreflightChecks        = true
-    DaemonAuthenticationType     = "password"
-    DaemonAuthenticationPassword = random_string.password.result
-    ImportSettingsFrom           = "/etc/ptfe-settings.json"
-    LicenseFileLocation          = "/etc/tfe-license.lic"
-    TlsBootstrapHostname         = local.tfe_hostname
-    TlsBootstrapCert             = "/var/lib/tfe/certificate.pem"
-    TlsBootstrapKey              = "/var/lib/tfe/key.pem"
-    TlsBootstrapType             = "server-path"
-    LogLevel                     = "info"
-    ReleaseSequence              = var.release_sequence
-  }
-  # values on the tfe_config must be string with "" used
-  tfe_config = {
-    archivist_token = {
-      value = random_id.archivist_token.hex
-    }
-    aws_instance_profile = {
-      value = "1"
-    }
-    cookie_hash = {
-      value = random_id.cookie_hash.hex
-    }
-    capacity_concurrency = {
-      value = "10"
-    }
-    capacity_memory = {
-      value = "512"
-    }
-    enable_active_active = {
-      value = "0"
-    }
-    enable_metrics_collection = {
-      value = "1"
-    }
-    enc_password = {
-      value = random_id.enc_password.hex
-    }
-    extra_no_proxy = {
-      value = join(",",
-        ["127.0.0.1",
-          "169.254.169.254",
-          "secretsmanager.${var.region}.amazonaws.com",
-          local.tfe_hostname,
-        var.cidr_vpc]
-      )
-    }
-    force_tls = {
-      value = "1"
-    }
-    hairpin_addressing = {
-      value = "0"
-    }
-    hostname = {
-      value = local.tfe_hostname
-    }
-    iact_subnet_list = {
-      value = "0.0.0.0/0"
-    }
-    iact_subnet_time_limit = {
-      value = "unlimited"
-    }
-    install_id = {
-      value = random_id.install_id.hex
-    }
-    internal_api_token = {
-      value = random_id.internal_api_token.hex
-    }
-    pg_dbname = {
-      value = var.postgres_db_name
-    }
-    pg_netloc = {
-      value = aws_db_instance.tfe.endpoint
-    }
-    pg_password = {
-      value = random_string.pgsql_password.result
-    }
-    pg_user = {
-      value = var.postgres_username
-    }
-    placement = {
-      value = "placement_s3"
-    }
-    production_type = {
-      value = "external"
-    }
-    redis_host = {
-      value = ""
-    }
-    redis_pass = {
-      value = random_id.redis_password.hex
-    }
-    redis_port = {
-      value = "6380"
-    }
-    redis_use_password_auth = {
-      value = "0"
-    }
-    redis_use_tls = {
-      value = "0"
-    }
-    registry_session_encryption_key = {
-      value = random_id.registry_session_encryption_key.hex
-    }
-    registry_session_secret_key = {
-      value = random_id.registry_session_secret_key.hex
-    }
-    root_secret = {
-      value = random_id.root_secret.hex
-    }
-    s3_bucket = {
-      value = aws_s3_bucket.tfe_data.id
-    }
-    s3_region = {
-      value = var.region
-    }
-    user_token = {
-      value = random_id.user_token.hex
-    }
-  }
   tfe_user_data = templatefile(
     "templates/installtfe.sh.tpl",
     {
-      replicated_settings   = base64encode(jsonencode(local.replicated_config))
-      tfe_settings          = base64encode(jsonencode(local.tfe_config))
       docker_compose_config = base64encode(local.docker_compose_config)
       docker_quaiio_token   = var.docker_quaiio_token
       docker_quaiio_login   = var.docker_quaiio_login
@@ -139,6 +16,7 @@ locals {
       docker_config         = filebase64("files/daemon.json")
     }
   )
+
   # Configuration reference path
   # https://github.com/hashicorp/terraform-enterprise/blob/main/docs/configuration.md
   docker_compose_config = templatefile(
@@ -158,6 +36,18 @@ locals {
     }
   )
 }
+
+/*    To add as not existing yet docker_compose parameter extra_no_proxy
+      extra_no_proxy = {
+        value = join(",",
+          ["127.0.0.1",
+            "169.254.169.254",
+            "secretsmanager.${var.region}.amazonaws.com",
+            local.tfe_hostname,
+            var.cidr_vpc]
+        )
+      } 
+*/
 
 data "local_sensitive_file" "sslcert" {
   filename = var.ssl_cert_path
@@ -190,39 +80,11 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-resource "random_id" "archivist_token" {
-  byte_length = 16
-}
-
-resource "random_id" "cookie_hash" {
-  byte_length = 16
-}
-
 resource "random_id" "enc_password" {
   byte_length = 16
 }
 
 resource "random_id" "install_id" {
-  byte_length = 16
-}
-
-resource "random_id" "internal_api_token" {
-  byte_length = 16
-}
-
-resource "random_id" "root_secret" {
-  byte_length = 16
-}
-
-resource "random_id" "registry_session_secret_key" {
-  byte_length = 16
-}
-
-resource "random_id" "registry_session_encryption_key" {
-  byte_length = 16
-}
-
-resource "random_id" "user_token" {
   byte_length = 16
 }
 
