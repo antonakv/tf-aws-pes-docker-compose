@@ -106,3 +106,7 @@ variable "docker_image_tag" {
   type        = string
   description = "Docker image tag"
 }
+variable "tfe_tls_version" {
+  type        = string
+  description = "TFE tls version"
+}
