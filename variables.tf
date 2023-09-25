@@ -97,17 +97,12 @@ variable "lb_ssl_policy" {
   type        = string
   description = "SSL policy for load balancer"
 }
-variable "docker_quaiio_token" {
+variable "docker_login" {
   type        = string
-  description = "Docker quai.io token from Account settings"
+  description = "Docker login"
   sensitive   = true
 }
-variable "docker_quaiio_login" {
+variable "docker_image_tag" {
   type        = string
-  description = "Docker quai.io login from Account settings"
-  sensitive   = true
-}
-variable "tfe_quaiio_tag" {
-  type        = string
-  description = "Docker tfe image tag on the quai.io"
+  description = "Docker image tag"
 }

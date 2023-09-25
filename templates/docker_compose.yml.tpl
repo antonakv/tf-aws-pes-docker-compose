@@ -3,7 +3,7 @@ version: "3.9"
 name: terraform-enterprise
 services:
   tfe:
-    image: quay.io/hashicorp/terraform-enterprise:${tfe_quaiio_tag}
+    image: images.releases.hashicorp.com/hashicorp/terraform-enterprise:${docker_image_tag}
     environment:
       TFE_HOSTNAME: ${hostname}
       TFE_OPERATIONAL_MODE: external

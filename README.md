@@ -61,9 +61,8 @@ cloudflare_api_token    = "api_token_here"
 lb_ssl_policy           = "ELBSecurityPolicy-2016-08"
 aws_az_1                = "eu-north-1b"
 aws_az_2                = "eu-north-1c"
-docker_quaiio_login     = "docker login here"
-docker_quaiio_token     = "docker token here"
-tfe_quaiio_tag          = "3bc2fb8"
+docker_login            = "terraform"
+docker_image_tag        = "v202309-1"
 ```
 
 ## Provisioning
