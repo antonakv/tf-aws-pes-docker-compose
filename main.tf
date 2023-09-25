@@ -24,6 +24,7 @@ locals {
     {
       hostname         = local.tfe_hostname
       docker_image_tag = var.docker_image_tag
+      tfe_tls_version  = var.tfe_tls_version
       enc_password     = random_id.enc_password.hex
       pg_dbname        = var.postgres_db_name
       pg_netloc        = aws_db_instance.tfe.endpoint

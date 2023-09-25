@@ -13,7 +13,7 @@ services:
       TFE_TLS_CERT_FILE: /etc/ssl/private/terraform-enterprise/certificate.pem
       TFE_TLS_KEY_FILE: /etc/ssl/private/terraform-enterprise/key.pem
       TFE_TLS_CA_BUNDLE_FILE: /etc/ssl/private/terraform-enterprise/chain.pem
-      TFE_TLS_VERSION: tls_1_2
+      TFE_TLS_VERSION: ${tfe_tls_version}
       TFE_TLS_ENFORCE: true
       TFE_DATABASE_USER: ${pg_user}
       TFE_DATABASE_PASSWORD: ${pg_password}
