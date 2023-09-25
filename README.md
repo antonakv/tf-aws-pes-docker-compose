@@ -27,17 +27,11 @@ This Terraform Code is dedicated to install Terraform Enterprise FDO external se
 
 ## Preparation
 
-- Login to the `quai.io`
-
-- In the Account settings click `Generate Encrypted Password`
-
-- Add variable value to `terraform.tfvars` called `docker_quaiio_token` from `-p="token_value_here"` generated on the previous step.
-
 - Create variable values file called `terraform.tfvars`. Here is example file, values have to be modified before terraform run:
 
 ```
 region                  = "xx-REGION_NAME-n"
-tfe_license_path        = "upload/license.lic"
+tfe_license_path        = "upload/license.hclic"
 cidr_vpc                = "10.5.0.0/16"
 cidr_subnet_private_1   = "10.5.1.0/24"
 cidr_subnet_private_2   = "10.5.2.0/24"
