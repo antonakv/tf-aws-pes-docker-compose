@@ -64,13 +64,13 @@ echo "$(date +"%T_%F") Write docker compose config" | tee -a $logpath
 
 sudo echo "${docker_compose_config}" | sudo base64 --decode > /home/ubuntu/install/docker_compose.yml
 
-echo "$(date +"%T_%F") Docker login to quai.io" | tee -a $logpath
+echo "$(date +"%T_%F") Docker login" | tee -a $logpath
 
-sudo docker login -u="${docker_quaiio_login}" -p="${docker_quaiio_token}" quay.io  | tee -a $logpath
+sudo docker login -u="${docker_login}" -p="${docker_password}" images.releases.hashicorp.com  | tee -a $logpath
 
-echo "$(date +"%T_%F") Docker pull image from quai.io" | tee -a $logpath
+echo "$(date +"%T_%F") Docker pull image" | tee -a $logpath
 
-sudo docker pull quay.io/hashicorp/terraform-enterprise:${tfe_quaiio_tag}  | tee -a $logpath
+sudo docker pull images.releases.hashicorp.com/hashicorp/terraform-enterprise:${docker_image_tag}  | tee -a $logpath
 
 cd /home/ubuntu/install
 

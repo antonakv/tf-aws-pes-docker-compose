@@ -5,9 +5,9 @@ locals {
     "templates/installtfe.sh.tpl",
     {
       docker_compose_config = base64encode(local.docker_compose_config)
-      docker_quaiio_token   = var.docker_quaiio_token
-      docker_quaiio_login   = var.docker_quaiio_login
-      tfe_quaiio_tag        = var.tfe_quaiio_tag
+      docker_password       = data.local_sensitive_file.license.content
+      docker_login          = var.docker_login
+      docker_image_tag      = var.docker_image_tag
       cert_secret_id        = aws_secretsmanager_secret.tls_certificate.id
       key_secret_id         = aws_secretsmanager_secret.tls_key.id
       chain_secret_id       = aws_secretsmanager_secret.tls_chain.id
@@ -22,18 +22,18 @@ locals {
   docker_compose_config = templatefile(
     "templates/docker_compose.yml.tpl",
     {
-      hostname       = local.tfe_hostname
-      tfe_quaiio_tag = var.tfe_quaiio_tag
-      enc_password   = random_id.enc_password.hex
-      pg_dbname      = var.postgres_db_name
-      pg_netloc      = aws_db_instance.tfe.endpoint
-      pg_password    = random_string.pgsql_password.result
-      pg_user        = var.postgres_username
-      region         = var.region
-      s3_bucket      = aws_s3_bucket.tfe_data.id
-      redis_pass     = random_id.redis_password.hex
-      install_id     = random_id.install_id.hex
-      user_token     = random_id.user_token.hex
+      hostname         = local.tfe_hostname
+      docker_image_tag = var.docker_image_tag
+      enc_password     = random_id.enc_password.hex
+      pg_dbname        = var.postgres_db_name
+      pg_netloc        = aws_db_instance.tfe.endpoint
+      pg_password      = random_string.pgsql_password.result
+      pg_user          = var.postgres_username
+      region           = var.region
+      s3_bucket        = aws_s3_bucket.tfe_data.id
+      redis_pass       = random_id.redis_password.hex
+      install_id       = random_id.install_id.hex
+      user_token       = random_id.user_token.hex
     }
   )
 }
@@ -60,6 +60,10 @@ data "local_sensitive_file" "sslkey" {
 
 data "local_sensitive_file" "sslchain" {
   filename = var.ssl_chain_path
+}
+
+data "local_sensitive_file" "license" {
+  filename = "upload/license.hclic"
 }
 
 data "aws_instances" "tfe" {
